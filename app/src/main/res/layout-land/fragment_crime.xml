@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/crime_title_label"
+        style="?android:listSeparatorTextViewStyle"/>
+
+    <EditText
+        android:id="@+id/crime_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:hint="@string/crime_title_hint"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/crime_details_label"
+        style="?android:listSeparatorTextViewStyle"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp">
+        <!--
+            LinearLayout分两个步骤设置视图宽度
+            1，根据layout_width属性值(竖直方向则看layout_height属性值)
+                wrap_content：根据自身内容绘制大小
+                match_parent：根据父组件大小，尽量适合
+            2，根据layout_weight属性值
+                第一步空间分配还有额外的空间剩余，layout_weight按比例分配这额外的空间
+            3，将1中值设置为0dp，2中设置成相同值，就可以完全宽度分配空间
+        -->
+        <Button
+            android:id="@+id/crime_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"/>
+
+        <CheckBox
+            android:id="@+id/crime_solved"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/crime_solved_label"/>
+    </LinearLayout>
+</LinearLayout>

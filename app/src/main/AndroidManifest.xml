@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="qianjun.android.criminalintent"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@android:style/Theme.Holo.Light.DarkActionBar">
+        <activity
+            android:name=".CrimeActivity"
+            android:label="@string/app_name">
+        </activity>
+
+        <!-- 申明CrimePagerActivity 并指定CrimeListActivity是期父类-->
+        <activity
+            android:name=".CrimePagerActivity"
+            android:label="@string/app_name">
+            <meta-data android:name="android.support.PARENT_ACTIVITY"
+                       android:value=".CrimeListActivity" />
+        </activity>
+
+        <activity android:name=".CrimeListActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>
