@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 定义的菜单资源将用于上下文操作栏和浮动上下文菜单的实施 -->
+    <item
+        android:id="@+id/menu_item_delete_crime"
+        android:icon="@android:drawable/ic_menu_delete"
+        android:title="@string/delete_crime"/>
+
+    <item
+        android:id="@+id/menu_item_edit_crime"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:title="@string/edit_crime"/>
+</menu>

@@ -6,12 +6,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
+import android.view.ActionMode;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView.MultiChoiceModeListener;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.ListView;
@@ -132,7 +136,7 @@ public class CrimeListFragment extends ListFragment {
      * @return
      */
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 //        View view = super.onCreateView(inflater, container, savedInstanceState);
         View view ;
         if (mCrimes == null || mCrimes.size()==0) {
@@ -142,10 +146,78 @@ public class CrimeListFragment extends ListFragment {
         }else{
             view = super.onCreateView(inflater, container, savedInstanceState);
         }
+        // 希望点击任意列表项，都能弹出上下文菜单，不用那么麻烦的逐个登记列表项视图，直接登记ListView
+        // 调用registerForContextMenu 方能触发菜单的创建，为浮动上下文菜单登记一个视图
+        // 在onCreateView()方法完成调用前获取视图只能用下类方法，不能用getListView()，无效的
+        ListView listView = (ListView) view.findViewById(android.R.id.list);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
             if (mIsShowSubTitle){
                 getActivity().getActionBar().setSubtitle(R.string.subtitle);
             }
+            // Use contextual action bar on Honeycomb and higher
+            listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+            // 设置监听器,上下文菜单
+            listView.setMultiChoiceModeListener(new MultiChoiceModeListener(){
+
+                /**
+                 *  从操作模式中而非activity中获取MenuInflater的，操作模式负责对上下文操作栏进行配置
+                 *  ex: ActionMode.setTitle(...)方法为上下文菜单栏设置，activity的MenuInflater则不行
+                 * @param mode
+                 * @param menu
+                 * @return
+                 */
+                @Override
+                public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                    MenuInflater menuInflater = mode.getMenuInflater();
+                    menuInflater.inflate(R.menu.crime_list_item_context, menu);
+                    return true;
+                }
+
+                @Override
+                public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                    return false;
+                }
+
+                /**
+                 * 响应菜单项删除操作，从CrimeLab中删除一个或多个Crime对象，然后重新加载显示列表
+                 * 最后，调用ActionMode.finish()方法准备摧毁操作模式
+                 * @param mode
+                 * @param item
+                 * @return
+                 */
+                @Override
+                public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                    switch (item.getItemId()){
+                        case R.id.menu_item_delete_crime :{
+                            CrimeAdapter adapter = (CrimeAdapter) getListAdapter();
+                            CrimeLab crimeLab = CrimeLab.getInstance(getActivity());
+                            for (int i = adapter.getCount() -1; i>=0; i--){
+                                if (getListView().isItemChecked(i)){
+                                    crimeLab.deleteCrime(adapter.getItem(i));
+                                }
+                            }
+                            mode.finish();
+                            adapter.notifyDataSetChanged();
+                            return true;
+                        }
+                        default:
+                            return false;
+                    }
+                }
+
+                @Override
+                public void onDestroyActionMode(ActionMode mode) {
+
+                }
+
+                @Override
+                public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
+
+                }
+            });
+        } else {
+            // Use floating context menus on Froyo and Gingerbread
+            registerForContextMenu(listView);
         }
         return view;
     }
@@ -262,6 +334,48 @@ public class CrimeListFragment extends ListFragment {
                  return super.onOptionsItemSelected(item);
              }
         }// End switch
+    }
+
+    /**
+     * 实例化菜单资源，并用它填充上下文菜单
+     * 默认情况下，长按视图不会触发上下文菜单的创建
+     * @param menu
+     * @param v
+     * @param menuInfo
+     */
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        getActivity().getMenuInflater().inflate(R.menu.crime_list_item_context, menu);
+    }
+
+    /**
+     * 监听上下文菜单项选择事件
+     * @param item
+     * @return
+     */
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+        int position = info.position;
+        CrimeAdapter adapter = (CrimeAdapter) getListAdapter();
+        Crime crime = adapter.getItem(position);
+
+        switch (item.getItemId()){
+            case R.id.menu_item_delete_crime : {
+                CrimeLab.getInstance(getActivity()).deleteCrime(crime);
+                adapter.notifyDataSetChanged();
+                return true;
+            }
+            case R.id.menu_item_edit_crime : {
+                Intent intent = new Intent(getActivity(), CrimePagerActivity.class);
+                intent.putExtra(CrimeFragment.EXTRA_CRIME_ID, crime.getId());
+                startActivityForResult(intent, REQUEST_CRIME);
+                return true;
+            }
+        }
+
+        return super.onContextItemSelected(item);
     }
 
     @Override
